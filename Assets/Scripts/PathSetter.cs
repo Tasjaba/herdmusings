@@ -10,7 +10,6 @@ using System.Collections.Generic;
  * TODO: object pooling of waypoints to prevent garbage collection when clearing a path
  * TODO: make the trail start at the actor regardless of where the drag starts
  * TODO: make wps cast down to ground (or other flat surface) so that they are not floating
- * TODO: directional particles so that we can do footsteps properly
  */
 public class PathSetter : MonoBehaviour {
 
@@ -260,8 +259,10 @@ public class PathSetter : MonoBehaviour {
 			for (float dist = (forced ? 0.0f : trailParticleDistance); dist <= totalDistance; dist += trailParticleDistance)
 			{
 				trailParticleSystemTransform.position = ray.GetPoint(dist);
+
 				// make sure the particle is facing in the direction of the last normal
-				trailParticleSystem.startRotation3D = (Quaternion.LookRotation(lastHitNormal).eulerAngles) / 180.0f * Mathf.PI;
+				trailParticleSystem.startRotation3D = ((Quaternion.LookRotation(lastHitNormal, dir)).eulerAngles) / 180.0f * Mathf.PI;
+
 				trailParticleSystem.Emit(emissionsPerDistance);
 				lastTrailParticlePos = position;
 			}
