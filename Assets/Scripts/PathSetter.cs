@@ -42,6 +42,8 @@ public class PathSetter : MonoBehaviour {
 	// particles to emit per distance
 	public int emissionsPerDistance = 5;
 
+	public List<PathFollower> followers;
+
 	// PRIVATE VARIABLES
 	//
 
@@ -95,9 +97,11 @@ public class PathSetter : MonoBehaviour {
 		}
 		// if we were drawing a path, but not anymore,
 		// then complete the path
+		// and let any followers know
 		else if (drawingPathNow)
 		{
 			CompletePath();
+			UpdateFollowers();
 		}
 	}
 
@@ -123,6 +127,10 @@ public class PathSetter : MonoBehaviour {
 			if (!drawingPathNow)
 			{
 				drawingPathNow = true;
+
+				// clear all the followers so that they stop their paths
+				ClearFollowers();
+
 				StartNewPath(lastHitPos);
 
 				lastTrailParticlePos = lastHitPos;
@@ -185,7 +193,36 @@ public class PathSetter : MonoBehaviour {
 		AddWP(lastHitPos, wpPrefab.rotation);
 		drawingPathNow = false;
 		AddParticlesIfFarEnough(lastHitPos, true);
+	}
 
+	/** let all the followers know of the new path */
+	public void UpdateFollowers()
+	{
+		Transform[] path = wps.ToArray();
+		// make all the followers follow
+		for (int i = 0; i < followers.Count; i++)
+		{
+			followers[i].Traverse(path);
+		}
+	}
+	public void ClearFollowers()
+	{
+		// make all the followers follow
+		for (int i = 0; i < followers.Count; i++)
+		{
+			followers[i].Clear();
+		}
+	}
+
+	private Vector3[] ToPositionPath()
+	{
+		Vector3[] path = new Vector3[wps.Count];
+		for (int i = 0; i < wps.Count; i++)
+		{
+			path[i] = wps[i].position;
+		}
+
+		return path;
 	}
 
 	/** creates and adds a WP, adds it to the list, and sets our transform as parent */
