@@ -9,7 +9,7 @@ using UnityEditor;
 #endif
 
 [RequireComponent(typeof(Rigidbody))]
-public class Flocker3D : MonoBehaviour {
+public class FlockerFish : MonoBehaviour {
 
 	public float speed = 5.0f;				// movement vars
 	public float maxTurnRate = 120.0f;	// maximum rotation rate per second in degrees
@@ -160,16 +160,25 @@ public class Flocker3D : MonoBehaviour {
 	}
 
 	void FixedUpdate() {
+		// gravity dependent on whether the fish is out of water
+		rb.useGravity = rb.position.y > 0.0f;
+
 
 		// get current orientation
 		Quaternion rot = rb.rotation;
+
+		// no flying fish
+		if (rb.useGravity)
+		{
+			moveDirection = Vector3.down;
+			rb.rotation = Quaternion.LookRotation(Vector3.down);
+		}
 
 		// "steer" in the new direction
 		if (moveDirection != Vector3.zero)
 		{
 			// flatten the movement direction to zero out the y (up/down)
 			Vector3 v = moveDirection;
-			v.y = 0.0f;
 			v.Normalize();
 
 			// here's where we ideally want to steer towards
@@ -182,8 +191,8 @@ public class Flocker3D : MonoBehaviour {
 			rb.MoveRotation(rot);
 
 			// calculate the new velocity, but use the existing y velocity of the rigidbody
-			v = rot * Vector3.forward * speed * moveDirection.magnitude;
-			v.y = rb.velocity.y;
+			v = rot * Vector3.forward * speed * Mathf.Clamp01(moveDirection.magnitude);
+
 			rb.velocity = v;
 		}
 		else
